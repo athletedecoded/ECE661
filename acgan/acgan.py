@@ -106,7 +106,7 @@ class ACGAN():
         labels = np.array([num for _ in range(n_row) for num in range(n_row)])
         labels = torch.tensor(labels, device=self.device, dtype=torch.long)
         gen_imgs = self.generator(z, labels)
-        save_image(gen_imgs.data, "acgan/images/%d.png" % batches_done, nrow=n_row, normalize=True)
+        save_image(gen_imgs.data, f"acgan/{self.config.dataset}/%d.png" % batches_done, nrow=n_row, normalize=True)
 
     def train(self):
     # ----------

@@ -120,5 +120,5 @@ class WGAN():
                     )
 
                 if batches_done % self.config.sample_interval == 0:
-                    save_image(gen_imgs.data[:25], "wgan/images/%d.png" % batches_done, nrow=5, normalize=True)
+                    save_image(gen_imgs.data[:25], f"wgan/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
                 batches_done += 1

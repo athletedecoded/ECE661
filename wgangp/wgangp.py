@@ -154,6 +154,6 @@ class WGANGP():
                     )
 
                     if batches_done % self.config.sample_interval == 0:
-                        save_image(fake_imgs.data[:25], "wgangp/images/%d.png" % batches_done, nrow=5, normalize=True)
+                        save_image(fake_imgs.data[:25], f"wgangp/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
 
                     batches_done += self.config.n_critic

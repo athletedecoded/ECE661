@@ -121,4 +121,4 @@ class GAN():
 
                 batches_done = epoch * len(self.dataloader) + i
                 if batches_done % self.config.sample_interval == 0:
-                    save_image(gen_imgs.data[:25], "gan/images/%d.png" % batches_done, nrow=5, normalize=True)
+                    save_image(gen_imgs.data[:25], f"gan/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)

@@ -1,10 +1,8 @@
-n_epochs: 200
+n_epochs: 30
 batch_size: 64
 lr: 0.00005
 n_cpu: 8
 latent_dim: 100
-img_size: 28
-channels: 1
 n_critic: 5
 clip_value: 0.01
-sample_interval: 400
+sample_interval: 200
