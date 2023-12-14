@@ -59,12 +59,18 @@ class WGAN():
         self.config = config
         self.device = device
         self.dataloader = dataloader
+
         # Initialize generator and discriminator
         self.generator = Generator(self.config.latent_dim, self.config.img_shape).to(self.device)
         self.discriminator = Discriminator(self.config.img_shape).to(self.device)
+
         # Optimizers
         self.optimizer_G = torch.optim.RMSprop(self.generator.parameters(), lr=self.config.lr)
         self.optimizer_D = torch.optim.RMSprop(self.discriminator.parameters(), lr=self.config.lr)
+
+        # Track loss per epoch
+        self.g_losses = []
+        self.d_losses = []
 
     def train(self):
         # ----------
@@ -109,6 +115,7 @@ class WGAN():
 
                     # Generate a batch of images
                     gen_imgs = self.generator(z)
+
                     # Adversarial loss
                     loss_G = -torch.mean(self.discriminator(gen_imgs))
 
@@ -128,6 +135,9 @@ class WGAN():
 
             # Save images per epoch
             save_image(gen_imgs.data[:25], f"wgan/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)
+            # Save losses per epoch
+            self.g_losses.append(loss_G.item())
+            self.d_losses.append(loss_D.item())
             
         t1 = time.time()
         print(f"Training time for WGAN on {self.config.dataset} = {t1 - t0} sec")

@@ -9,6 +9,8 @@ from torchvision import datasets
 
 import torch
 
+from utils import plot_losses
+
 from gan.gan import GAN
 from wgan.wgan import WGAN
 from acgan.acgan import ACGAN
@@ -47,8 +49,11 @@ def main():
     _, model, dataset = sys.argv[0], sys.argv[1], sys.argv[2]
     assert model in ["gan", "wgan", "acgan", "wgangp"]
     assert dataset in ["mnist", "cifar"]
+
     # Set device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
     # Config
     config = SimpleNamespace(**load_config(f'{model}/config.yml'))
     config.dataset = dataset
@@ -62,13 +67,16 @@ def main():
             config.img_size = 32 # override as 32 for acgan
         config.channels = 1
     config.img_shape = (config.channels, config.img_size, config.img_size)
+
     # Construct dataloader
     dataloader = build_dataloader(dataset, config.img_size, config.batch_size)
+
     # Create fresh directory
     output_dir = f"{model}/{dataset}"
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.makedirs(f"{model}/{dataset}")
+
     # Init model
     if model == "gan":
         mdl = GAN(config, dataloader, device)
@@ -80,8 +88,12 @@ def main():
         mdl = WGANGP(config, dataloader, device)
     else:
         raise Exception("ERROR: Incorrect model useage must be one of gan, wgan, wgangp, acgan")
+
     # Run training
     mdl.train()
+
+    # Plot losses
+    plot_losses(output_dir, mdl.g_losses, mdl.d_losses)
 
 if __name__ == "__main__":
     main()

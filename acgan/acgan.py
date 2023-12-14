@@ -80,6 +80,7 @@ class ACGAN():
         self.config = config
         self.device = device
         self.dataloader = dataloader
+
         # Loss functions
         self.adversarial_loss = torch.nn.BCELoss()
         self.auxiliary_loss = torch.nn.CrossEntropyLoss()
@@ -95,6 +96,10 @@ class ACGAN():
         # Optimizers
         self.optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.config.lr, betas=(self.config.b1, self.config.b2))
         self.optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.config.lr, betas=(self.config.b1, self.config.b2))
+
+        # Track loss per epoch
+        self.g_losses = []
+        self.d_losses = []
 
     def sample_image(self, n_row, batches_done):
         """Saves a grid of generated digits ranging from 0 to n_classes"""
@@ -181,5 +186,9 @@ class ACGAN():
             
             # Save per epoch
             self.sample_image(n_row=10, batches_done=epoch)   
+            # Save losses per epoch
+            self.g_losses.append(g_loss.item())
+            self.d_losses.append(d_loss.item())
+
         t1 = time.time()
         print(f"Training time for AC-GAN on {self.config.dataset} = {t1 - t0} sec")

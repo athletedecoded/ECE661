@@ -61,15 +61,22 @@ class WGANGP():
         self.config = config
         self.device = device
         self.dataloader = dataloader
+
         # Initialize generator and discriminator
         self.generator = Generator(self.config.latent_dim, self.config.img_shape).to(self.device)
         self.discriminator = Discriminator(self.config.img_shape).to(self.device)
+
         # Initialize weights
         self.generator.apply(init_wts_normal)
         self.discriminator.apply(init_wts_normal)
+
         # Optimizers
         self.optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.config.lr, betas=(self.config.b1, self.config.b2))
         self.optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.config.lr, betas=(self.config.b1, self.config.b2))
+
+        # Track loss per epoch
+        self.g_losses = []
+        self.d_losses = []
 
     def compute_gradient_penalty(self, D, real_samples, fake_samples):
         """Calculates the gradient penalty loss for WGAN GP"""
@@ -141,6 +148,7 @@ class WGANGP():
 
                     # Generate a batch of images
                     fake_imgs = self.generator(z)
+
                     # Loss measures generator's ability to fool the discriminator
                     # Train on fake images
                     fake_validity = self.discriminator(fake_imgs)
@@ -162,6 +170,9 @@ class WGANGP():
 
             # Save per epoch
             save_image(fake_imgs.data[:25], f"wgangp/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)
+            # Save losses per epoch
+            self.g_losses.append(g_loss.item())
+            self.d_losses.append(d_loss.item())
                 
         t1 = time.time()
         print(f"Training time for WGAN on {self.config.dataset} = {t1 - t0} sec")
