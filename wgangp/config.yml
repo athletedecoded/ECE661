@@ -7,5 +7,5 @@ n_cpu: 8
 latent_dim: 100
 n_critic: 5
 clip_value: 0.01
-sample_interval: 400
+# sample_interval: 400
 lambda_gp: 10 # added gradient penalty here

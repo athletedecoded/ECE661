@@ -6,4 +6,4 @@ b2: 0.999
 n_cpu: 8
 latent_dim: 100
 n_classes: 10
-sample_interval: 400
+# sample_interval: 400

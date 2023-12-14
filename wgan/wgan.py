@@ -120,8 +120,14 @@ class WGAN():
                         % (epoch, self.config.n_epochs, batches_done % len(self.dataloader), len(self.dataloader), loss_D.item(), loss_G.item())
                     )
 
-                if batches_done % self.config.sample_interval == 0:
-                    save_image(gen_imgs.data[:25], f"wgan/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
+                # Save images per sample_interval
+                # if batches_done % self.config.sample_interval == 0:
+                #     save_image(gen_imgs.data[:25], f"wgan/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
+                
                 batches_done += 1
+
+            # Save images per epoch
+            save_image(gen_imgs.data[:25], f"wgan/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)
+            
         t1 = time.time()
         print(f"Training time for WGAN on {self.config.dataset} = {t1 - t0} sec")

@@ -174,7 +174,12 @@ class ACGAN():
                     % (epoch, self.config.n_epochs, i, len(self.dataloader), d_loss.item(), 100 * d_acc, g_loss.item())
                 )
                 batches_done = epoch * len(self.dataloader) + i
-                if batches_done % self.config.sample_interval == 0:
-                    self.sample_image(n_row=10, batches_done=batches_done)
+
+                # Save image per sample_interval
+                # if batches_done % self.config.sample_interval == 0:
+                #     self.sample_image(n_row=10, batches_done=batches_done)
+            
+            # Save per epoch
+            self.sample_image(n_row=10, batches_done=epoch)   
         t1 = time.time()
         print(f"Training time for AC-GAN on {self.config.dataset} = {t1 - t0} sec")

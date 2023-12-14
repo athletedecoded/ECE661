@@ -1,6 +1,7 @@
 import yaml
 import os
 import sys
+import shutil
 from types import SimpleNamespace
 
 import torchvision.transforms as transforms
@@ -63,8 +64,12 @@ def main():
     config.img_shape = (config.channels, config.img_size, config.img_size)
     # Construct dataloader
     dataloader = build_dataloader(dataset, config.img_size, config.batch_size)
+    # Create fresh directory
+    output_dir = f"{model}/{dataset}"
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(f"{model}/{dataset}")
     # Init model
-    os.makedirs(f"{model}/{dataset}", exist_ok=True)
     if model == "gan":
         mdl = GAN(config, dataloader, device)
     elif model == "wgan":

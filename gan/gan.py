@@ -122,7 +122,13 @@ class GAN():
                 )
 
                 batches_done = epoch * len(self.dataloader) + i
-                if batches_done % self.config.sample_interval == 0:
-                    save_image(gen_imgs.data[:25], f"gan/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
+
+                # Save images per sample_interval
+                # if batches_done % self.config.sample_interval == 0:
+                #     save_image(gen_imgs.data[:25], f"gan/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
+            
+            # Save images per epoch
+            save_image(gen_imgs.data[:25], f"gan/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)    
+               
         t1 = time.time()
         print(f"Training time for GAN on {self.config.dataset} = {t1 - t0} sec")
