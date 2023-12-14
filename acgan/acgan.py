@@ -121,8 +121,8 @@ class ACGAN():
                 fake = torch.full((imgs.size(0), 1), 0.0, device=self.device, requires_grad=False)
 
                 # Configure input
-                real_imgs = torch.tensor(imgs, device=self.device, dtype=torch.float32)
-                labels = torch.tensor(labels, device=self.device, dtype=torch.long)
+                real_imgs = imgs.clone().detach()
+                labels = labels.clone().detach()
 
                 # -----------------
                 #  Train Generator
