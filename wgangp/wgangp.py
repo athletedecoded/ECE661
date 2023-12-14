@@ -1,17 +1,13 @@
-import os
 import numpy as np
 
-import torchvision.transforms as transforms
 from torchvision.utils import save_image
-
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torch.autograd import Variable
 
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.autograd as autograd
 import torch
+
+from utils import init_wts_normal
 
 
 class Generator(nn.Module):
@@ -67,6 +63,9 @@ class WGANGP():
         # Initialize generator and discriminator
         self.generator = Generator(self.config.latent_dim, self.config.img_shape).to(self.device)
         self.discriminator = Discriminator(self.config.img_shape).to(self.device)
+        # Initialize weights
+        self.generator.apply(init_wts_normal)
+        self.discriminator.apply(init_wts_normal)
         # Optimizers
         self.optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.config.lr, betas=(self.config.b1, self.config.b2))
         self.optimizer_D = torch.optim.Adam(self.discriminator.parameters(), lr=self.config.lr, betas=(self.config.b1, self.config.b2))

@@ -5,7 +5,7 @@ import math
 
 from torchvision.utils import save_image
 
-from utils import weights_init_normal
+from utils import init_wts_normal
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -91,8 +91,8 @@ class ACGAN():
         self.discriminator = Discriminator(self.config.channels, self.config.img_size, self.config.n_classes).to(device)
 
         # Initialize weights
-        self.generator.apply(weights_init_normal)
-        self.discriminator.apply(weights_init_normal)
+        self.generator.apply(init_wts_normal)
+        self.discriminator.apply(init_wts_normal)
 
         # Optimizers
         self.optimizer_G = torch.optim.Adam(self.generator.parameters(), lr=self.config.lr, betas=(self.config.b1, self.config.b2))
