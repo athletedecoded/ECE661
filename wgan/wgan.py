@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from torchvision.utils import save_image
 
@@ -69,7 +70,7 @@ class WGAN():
         # ----------
         #  Training
         # ----------
-
+        t0 = time.time()
         batches_done = 0
         for epoch in range(self.config.n_epochs):
             for i, (imgs, _) in enumerate(self.dataloader): # self supervised --> no labels needed
@@ -122,3 +123,5 @@ class WGAN():
                 if batches_done % self.config.sample_interval == 0:
                     save_image(gen_imgs.data[:25], f"wgan/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
                 batches_done += 1
+        t1 = time.time()
+        print(f"Training time for WGAN on {self.config.dataset} = {t1 - t0} sec")

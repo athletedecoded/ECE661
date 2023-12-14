@@ -1,7 +1,5 @@
-import argparse
-import os
+import time
 import numpy as np
-import math
 
 from torchvision.utils import save_image
 
@@ -112,6 +110,7 @@ class ACGAN():
     # ----------
     #  Training
     # ----------
+        t0 = time.time()
         for epoch in range(self.config.n_epochs):
             for i, (imgs, labels) in enumerate(self.dataloader):
 
@@ -177,3 +176,5 @@ class ACGAN():
                 batches_done = epoch * len(self.dataloader) + i
                 if batches_done % self.config.sample_interval == 0:
                     self.sample_image(n_row=10, batches_done=batches_done)
+        t1 = time.time()
+        print(f"Training time for AC-GAN on {self.config.dataset} = {t1 - t0} sec")

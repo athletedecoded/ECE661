@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from torchvision.utils import save_image
 
@@ -93,6 +94,7 @@ class WGANGP():
 
 
     def train(self):
+        t0 = time.time()
         # ----------
         #  Training
         # ----------
@@ -156,3 +158,5 @@ class WGANGP():
                         save_image(fake_imgs.data[:25], f"wgangp/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
 
                     batches_done += self.config.n_critic
+        t1 = time.time()
+        print(f"Training time for WGAN on {self.config.dataset} = {t1 - t0} sec")

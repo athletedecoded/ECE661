@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from torchvision.utils import save_image
 
@@ -73,6 +74,7 @@ class GAN():
     #  Training
     # ----------
     def train(self):
+        t0 = time.time()
         for epoch in range(self.config.n_epochs):
             for i, (imgs, _) in enumerate(self.dataloader):
 
@@ -122,3 +124,5 @@ class GAN():
                 batches_done = epoch * len(self.dataloader) + i
                 if batches_done % self.config.sample_interval == 0:
                     save_image(gen_imgs.data[:25], f"gan/{self.config.dataset}/%d.png" % batches_done, nrow=5, normalize=True)
+        t1 = time.time()
+        print(f"Training time for GAN on {self.config.dataset} = {t1 - t0} sec")
