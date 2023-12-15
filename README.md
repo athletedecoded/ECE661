@@ -24,5 +24,5 @@ $ python3 run.py <MODEL> <DATASET> <DEVICE>
 **FID Score**
 
 ```
-# ex. python3 -m pytorch_fid wgan/cifar/real_imgs wgan_cifar/gen_images
+# ex. python3 -m pytorch_fid wgan/cifar/real_imgs wgan/cifar/gen_imgs
 ```

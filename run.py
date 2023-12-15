@@ -73,7 +73,7 @@ def main():
     mdl.train()
 
     # Plot losses
-    plot_losses(output_dir, mdl.g_losses, mdl.d_losses)
+    plot_losses(output_dir, mdl.g_losses, mdl.d_losses, model, config.log_k_epoch)
 
     # Save images for FID
     save_images(mdl.gen_imgs, f"{model}/{dataset}/gen_imgs")

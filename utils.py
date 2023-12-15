@@ -19,11 +19,11 @@ def init_wts_normal(m):
         torch.nn.init.normal_(m.weight.data, 1.0, 0.02)
         torch.nn.init.constant_(m.bias.data, 0.0)
 
-def plot_losses(save_pth, g_losses, d_losses):
-    epochs = range(1, len(g_losses) + 1)
+def plot_losses(save_pth, g_losses, d_losses, model, k):
+    epochs = range(1, k*len(g_losses) + 1, k)
     plt.plot(epochs, g_losses, label='Generator')
     plt.plot(epochs, d_losses, label='Discriminator')
-    plt.title('Generator vs Discriminator Loss per Epoch')
+    plt.title(f'{model} Loss per Epoch')
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.xticks(epochs)
