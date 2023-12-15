@@ -72,6 +72,10 @@ class WGAN():
         self.g_losses = []
         self.d_losses = []
 
+        # Save final image state
+        self.gen_imgs = []
+        self.real_imgs = []
+
     def train(self):
         # ----------
         #  Training
@@ -82,6 +86,9 @@ class WGAN():
             for i, (imgs, _) in enumerate(self.dataloader): # self supervised --> no labels needed
                 # Configure input
                 real_imgs = torch.tensor(imgs, device=self.device, dtype=torch.float32)
+                # Log final epoch of images
+                if epoch == self.config.n_epochs - 1:
+                    self.real_imgs.append(real_imgs)
 
                 # ---------------------
                 #  Train Discriminator
@@ -115,6 +122,10 @@ class WGAN():
 
                     # Generate a batch of images
                     gen_imgs = self.generator(z)
+                    
+                    # Log final epoch of images
+                    if epoch == self.config.n_epochs - 1:
+                        self.gen_imgs.append(gen_imgs)
 
                     # Adversarial loss
                     loss_G = -torch.mean(self.discriminator(gen_imgs))
@@ -138,6 +149,10 @@ class WGAN():
             # Save losses per epoch
             self.g_losses.append(loss_G.item())
             self.d_losses.append(loss_D.item())
-            
+        
         t1 = time.time()
         print(f"Training time for WGAN on {self.config.dataset} = {t1 - t0} sec")
+
+        # Cat and save first 1000 images
+        self.gen_imgs = torch.cat(self.gen_imgs, dim=0)[:1000]
+        self.real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]

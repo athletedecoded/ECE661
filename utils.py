@@ -1,5 +1,15 @@
+import os
+import yaml
 import torch
 import matplotlib.pyplot as plt
+import torchvision.transforms as transforms
+from torchvision import datasets
+from torchvision.utils import save_image
+
+def load_config(config_path):
+    with open(config_path, 'r') as config_file:
+        config = yaml.safe_load(config_file)
+    return config
 
 def init_wts_normal(m):
     classname = m.__class__.__name__
@@ -19,3 +29,31 @@ def plot_losses(save_pth, g_losses, d_losses):
     plt.xticks(epochs)
     plt.legend()
     plt.savefig(f'{save_pth}/losses.png')
+
+def build_dataloader(dataset, img_size, batch_size):
+    os.makedirs(f"./data/{dataset}", exist_ok=True)
+    if dataset == "mnist":
+        ds = datasets.MNIST
+    elif dataset == "cifar":
+        ds = datasets.CIFAR10
+    else:
+        raise Exception("ERROR: Dataset must be one of mnist, cifar")
+
+    dataloader = torch.utils.data.DataLoader(
+        ds(
+            f"./data/{dataset}",
+            train=True,
+            download=True,
+            transform=transforms.Compose(
+                [transforms.Resize(img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+            ),
+        ),
+        batch_size=batch_size,
+        shuffle=True,
+    )
+    return dataloader
+
+def save_images(image_array, output_dir):
+    for i, image in enumerate(image_array):
+        img_path = os.path.join(output_dir, f'image_{i + 1}.png')
+        save_image(image, img_path)

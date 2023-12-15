@@ -1,57 +1,35 @@
-import yaml
 import os
 import sys
 import shutil
 from types import SimpleNamespace
 
 import torchvision.transforms as transforms
+from torchvision.models import inception_v3
 from torchvision import datasets
 
 import torch
 
-from utils import plot_losses
+from utils import plot_losses, load_config, build_dataloader, save_images
 
 from gan.gan import GAN
 from wgan.wgan import WGAN
 from acgan.acgan import ACGAN
 from wgangp.wgangp import WGANGP
 
-def load_config(config_path):
-    with open(config_path, 'r') as config_file:
-        config = yaml.safe_load(config_file)
-    return config
-
-def build_dataloader(dataset, img_size, batch_size):
-    os.makedirs(f"./data/{dataset}", exist_ok=True)
-    if dataset == "mnist":
-        ds = datasets.MNIST
-    elif dataset == "cifar":
-        ds = datasets.CIFAR10
-    else:
-        raise Exception("ERROR: Dataset must be one of mnist, cifar")
-
-    dataloader = torch.utils.data.DataLoader(
-        ds(
-            f"./data/{dataset}",
-            train=True,
-            download=True,
-            transform=transforms.Compose(
-                [transforms.Resize(img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
-            ),
-        ),
-        batch_size=batch_size,
-        shuffle=True,
-    )
-    return dataloader
 
 def main():
     # Parse cli args
-    _, model, dataset = sys.argv[0], sys.argv[1], sys.argv[2]
+    if len(sys.argv) == 4:
+        _, model, dataset, device = sys.argv[0], sys.argv[1], sys.argv[2], torch.device(sys.argv[3])
+    else:
+        _, model, dataset = sys.argv[0], sys.argv[1], sys.argv[2]
+        device = None
     assert model in ["gan", "wgan", "acgan", "wgangp"]
     assert dataset in ["mnist", "cifar"]
 
     # Set device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
     # Config
@@ -75,7 +53,9 @@ def main():
     output_dir = f"{model}/{dataset}"
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
-    os.makedirs(f"{model}/{dataset}")
+    os.makedirs(output_dir)
+    os.makedirs(f"{output_dir}/gen_imgs")
+    os.makedirs(f"{output_dir}/real_imgs")
 
     # Init model
     if model == "gan":
@@ -94,6 +74,10 @@ def main():
 
     # Plot losses
     plot_losses(output_dir, mdl.g_losses, mdl.d_losses)
+
+    # Save images for FID
+    save_images(mdl.gen_imgs, f"{model}/{dataset}/gen_imgs")
+    save_images(mdl.real_imgs, f"{model}/{dataset}/real_imgs")
 
 if __name__ == "__main__":
     main()

@@ -101,6 +101,10 @@ class ACGAN():
         self.g_losses = []
         self.d_losses = []
 
+        # Save final image state
+        self.gen_imgs = []
+        self.real_imgs = []
+
     def sample_image(self, n_row, batches_done):
         """Saves a grid of generated digits ranging from 0 to n_classes"""
         # Sample noise
@@ -129,6 +133,10 @@ class ACGAN():
                 real_imgs = torch.tensor(imgs, device=self.device, dtype=torch.float32)
                 labels = torch.tensor(labels, device=self.device, dtype=torch.long)
 
+                # Log final epoch of images
+                if epoch == self.config.n_epochs - 1:
+                    self.real_imgs.append(real_imgs)
+
                 # -----------------
                 #  Train Generator
                 # -----------------
@@ -141,6 +149,10 @@ class ACGAN():
 
                 # Generate a batch of images
                 gen_imgs = self.generator(z, gen_labels)
+
+                # Log final epoch of images
+                if epoch == self.config.n_epochs - 1:
+                    self.gen_imgs.append(gen_imgs)
 
                 # Loss measures generator's ability to fool the discriminator
                 validity, pred_label = self.discriminator(gen_imgs)
@@ -192,3 +204,7 @@ class ACGAN():
 
         t1 = time.time()
         print(f"Training time for AC-GAN on {self.config.dataset} = {t1 - t0} sec")
+
+        # Cat and save first 1000 images
+        self.gen_imgs = torch.cat(self.gen_imgs, dim=0)[:1000]
+        self.real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]

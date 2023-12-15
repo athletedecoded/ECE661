@@ -1,4 +1,4 @@
-n_epochs: 25
+n_epochs: 20
 batch_size: 64
 lr: 0.00005
 n_cpu: 8

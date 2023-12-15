@@ -1,8 +1,9 @@
 torch
 torchvision
 matplotlib
+pytorch-fid
 numpy
-scipy
+scipy==1.11.1
 pillow
 urllib3
 scikit-image

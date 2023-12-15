@@ -78,6 +78,10 @@ class WGANGP():
         self.g_losses = []
         self.d_losses = []
 
+        # Save final image state
+        self.gen_imgs = []
+        self.real_imgs = []
+
     def compute_gradient_penalty(self, D, real_samples, fake_samples):
         """Calculates the gradient penalty loss for WGAN GP"""
         # Random weight term for interpolation between real and fake samples
@@ -105,13 +109,16 @@ class WGANGP():
         # ----------
         #  Training
         # ----------
-
         batches_done = 0
         for epoch in range(self.config.n_epochs):
             for i, (imgs, _) in enumerate(self.dataloader):
 
                 # Configure input
                 real_imgs = torch.tensor(imgs, device=self.device, dtype=torch.float32)
+
+                # Log final epoch of images
+                if epoch == self.config.n_epochs - 1:
+                    self.real_imgs.append(real_imgs)
 
                 # ---------------------
                 #  Train Discriminator
@@ -149,6 +156,10 @@ class WGANGP():
                     # Generate a batch of images
                     fake_imgs = self.generator(z)
 
+                    # Log final epoch of images
+                    if epoch == self.config.n_epochs - 1:
+                        self.gen_imgs.append(fake_imgs)
+
                     # Loss measures generator's ability to fool the discriminator
                     # Train on fake images
                     fake_validity = self.discriminator(fake_imgs)
@@ -175,4 +186,8 @@ class WGANGP():
             self.d_losses.append(d_loss.item())
                 
         t1 = time.time()
-        print(f"Training time for WGAN on {self.config.dataset} = {t1 - t0} sec")
+        print(f"Training time for WGANGP on {self.config.dataset} = {t1 - t0} sec")
+
+        # Cat and save first 1000 images
+        self.gen_imgs = torch.cat(self.gen_imgs, dim=0)[:1000]
+        self.real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]
