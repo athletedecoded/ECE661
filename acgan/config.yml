@@ -3,7 +3,6 @@ batch_size: 64
 lr: 0.0002
 b1: 0.5
 b2: 0.999
-n_cpu: 8
 latent_dim: 100
 n_classes: 10
 log_k_epoch: 10

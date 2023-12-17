@@ -24,7 +24,7 @@ def plot_losses(save_pth, g_losses, d_losses, model, k):
         epochs = range(0, len(g_losses))
     else:
         epochs = range(0, k*len(g_losses) - 1, k)
-    plt.figure()
+    plt.figure(figsize=(12,10))
     plt.plot(epochs, g_losses, label='Generator')
     plt.plot(epochs, d_losses, label='Discriminator')
     plt.title(f'{model} Loss per Epoch')
@@ -33,6 +33,7 @@ def plot_losses(save_pth, g_losses, d_losses, model, k):
     plt.xticks(epochs)
     plt.legend()
     plt.savefig(f'{save_pth}/losses.png')
+    plt.close()
 
 def build_dataloader(dataset, img_size, channels, batch_size):
     os.makedirs(f"./data/{dataset}", exist_ok=True)

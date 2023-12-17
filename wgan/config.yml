@@ -1,7 +1,6 @@
 n_epochs: 500
 batch_size: 64
 lr: 0.0002
-n_cpu: 8
 latent_dim: 100
 n_critic: 5
 clip_value: 0.01
