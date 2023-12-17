@@ -9,7 +9,7 @@ from torchvision import datasets
 
 import torch
 
-from utils import plot_losses, load_config, build_dataloader, save_images
+from utils import load_config, build_dataloader
 
 from gan.gan import GAN
 from wgan.wgan import WGAN
@@ -35,6 +35,7 @@ def main():
     # Config
     config = SimpleNamespace(**load_config(f'{model}/config.yml'))
     config.dataset = dataset
+    config.model = model
     if dataset == "cifar":
         config.img_size = 32
         config.channels = 3
@@ -71,13 +72,6 @@ def main():
 
     # Run training
     mdl.train()
-
-    # Plot losses
-    plot_losses(output_dir, mdl.g_losses, mdl.d_losses, model, config.log_k_epoch)
-
-    # Save images for FID
-    save_images(mdl.gen_imgs, f"{model}/{dataset}/gen_imgs")
-    save_images(mdl.real_imgs, f"{model}/{dataset}/real_imgs")
 
 if __name__ == "__main__":
     main()

@@ -2,6 +2,7 @@ import numpy as np
 import time
 
 from torchvision.utils import save_image
+from utils import plot_losses, save_fid_images
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -72,10 +73,6 @@ class WGAN():
         self.g_losses = []
         self.d_losses = []
 
-        # Save final image state
-        self.gen_imgs = []
-        self.real_imgs = []
-
     def train(self):
         # ----------
         #  Training
@@ -83,12 +80,12 @@ class WGAN():
         t0 = time.time()
         batches_done = 0
         for epoch in range(self.config.n_epochs):
+            # Save final image state
+            self.fake_imgs = []
+            self.real_imgs = []
             for i, (imgs, _) in enumerate(self.dataloader): # self supervised --> no labels needed
                 # Configure input
                 real_imgs = torch.tensor(imgs, device=self.device, dtype=torch.float32)
-                # Log final epoch of images
-                if epoch == self.config.n_epochs - 1:
-                    self.real_imgs.append(real_imgs)
 
                 # ---------------------
                 #  Train Discriminator
@@ -99,12 +96,12 @@ class WGAN():
                 z = torch.tensor(np.random.normal(0, 1, (imgs.shape[0], self.config.latent_dim)), device=self.device, dtype=torch.float32)
 
                 # Generate a batch of images
-                fake_imgs = self.generator(z).detach()
+                gen_imgs = self.generator(z).detach()
 
                 # Adversarial loss
-                loss_D = -torch.mean(self.discriminator(real_imgs)) + torch.mean(self.discriminator(fake_imgs))
+                d_loss = -torch.mean(self.discriminator(real_imgs)) + torch.mean(self.discriminator(gen_imgs))
 
-                loss_D.backward()
+                d_loss.backward()
                 self.optimizer_D.step()
 
                 # Clip weights of discriminator
@@ -122,35 +119,40 @@ class WGAN():
 
                     # Generate a batch of images
                     gen_imgs = self.generator(z)
-                    
-                    # Log final epoch of images
-                    if epoch == self.config.n_epochs - 1:
-                        self.gen_imgs.append(gen_imgs)
 
                     # Adversarial loss
-                    loss_G = -torch.mean(self.discriminator(gen_imgs))
+                    g_loss = -torch.mean(self.discriminator(gen_imgs))
 
-                    loss_G.backward()
+                    g_loss.backward()
                     self.optimizer_G.step()
 
                     print(
                         "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-                        % (epoch, self.config.n_epochs, batches_done % len(self.dataloader), len(self.dataloader), loss_D.item(), loss_G.item())
+                        % (epoch, self.config.n_epochs, batches_done % len(self.dataloader), len(self.dataloader), d_loss.item(), g_loss.item())
                     )
                 
                 batches_done += 1
-
-            # each k epochs
-            if epoch % self.config.log_k_epoch == 0:
-                # Save sampled images
-                save_image(gen_imgs.data[:25], f"wgan/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)
-                # Save losses
-                self.g_losses.append(loss_G.item())
-                self.d_losses.append(loss_D.item())
+                
+                # Collect kth epoch and final epoch images
+                if (epoch % self.config.log_k_epoch == 0) or (epoch == self.config.n_epochs - 1):
+                    self.real_imgs.append(real_imgs)
+                    self.fake_imgs.append(gen_imgs)
+            
+            # logging at kth and final epochs
+            if (epoch % self.config.log_k_epoch == 0) or (epoch == self.config.n_epochs - 1):
+                # Log loss state
+                self.g_losses.append(g_loss.item())
+                self.d_losses.append(d_loss.item()) 
+                # Plot losses
+                plot_losses(f"{self.config.model}/{self.config.dataset}", self.g_losses, self.d_losses, self.config.model, self.config.log_k_epoch)
+                # Save samples
+                save_image(gen_imgs.data[:25], f"{self.config.model}/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)  
+                save_image(real_imgs.data[:25], f"{self.config.model}/{self.config.dataset}/%d_real.png" % epoch, nrow=5, normalize=True)
+                # Save 1k images for FID
+                fid_gen_imgs = torch.cat(self.fake_imgs, dim=0)[:1000]
+                fid_real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]     
+                save_fid_images(fid_gen_imgs, f"{self.config.model}/{self.config.dataset}/gen_imgs")
+                save_fid_images(fid_real_imgs, f"{self.config.model}/{self.config.dataset}/real_imgs")
         
         t1 = time.time()
         print(f"Training time for WGAN on {self.config.dataset} = {t1 - t0} sec")
-
-        # Cat and save first 1000 images
-        self.gen_imgs = torch.cat(self.gen_imgs, dim=0)[:1000]
-        self.real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]

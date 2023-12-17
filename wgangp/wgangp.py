@@ -2,6 +2,7 @@ import numpy as np
 import time
 
 from torchvision.utils import save_image
+from utils import plot_losses, save_fid_images
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -78,10 +79,6 @@ class WGANGP():
         self.g_losses = []
         self.d_losses = []
 
-        # Save final image state
-        self.gen_imgs = []
-        self.real_imgs = []
-
     def compute_gradient_penalty(self, D, real_samples, fake_samples):
         """Calculates the gradient penalty loss for WGAN GP"""
         # Random weight term for interpolation between real and fake samples
@@ -111,6 +108,9 @@ class WGANGP():
         # ----------
         batches_done = 0
         for epoch in range(self.config.n_epochs):
+            # Save final image state
+            self.fake_imgs = []
+            self.real_imgs = []
             for i, (imgs, _) in enumerate(self.dataloader):
 
                 # Configure input
@@ -130,14 +130,14 @@ class WGANGP():
                 z = torch.tensor(np.random.normal(0, 1, (imgs.shape[0], self.config.latent_dim)), device=self.device, dtype=torch.float32)
 
                 # Generate a batch of images
-                fake_imgs = self.generator(z)
+                gen_imgs = self.generator(z)
 
                 # Real images
                 real_validity = self.discriminator(real_imgs)
                 # Fake images
-                fake_validity = self.discriminator(fake_imgs)
+                fake_validity = self.discriminator(gen_imgs)
                 # Gradient penalty
-                gradient_penalty = self.compute_gradient_penalty(self.discriminator, real_imgs.data, fake_imgs.data)
+                gradient_penalty = self.compute_gradient_penalty(self.discriminator, real_imgs.data, gen_imgs.data)
                 # Adversarial loss
                 d_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + self.config.lambda_gp * gradient_penalty
 
@@ -154,15 +154,11 @@ class WGANGP():
                     # -----------------
 
                     # Generate a batch of images
-                    fake_imgs = self.generator(z)
-
-                    # Log final epoch of images
-                    if epoch == self.config.n_epochs - 1:
-                        self.gen_imgs.append(fake_imgs)
+                    gen_imgs = self.generator(z)
 
                     # Loss measures generator's ability to fool the discriminator
                     # Train on fake images
-                    fake_validity = self.discriminator(fake_imgs)
+                    fake_validity = self.discriminator(gen_imgs)
                     g_loss = -torch.mean(fake_validity)
 
                     g_loss.backward()
@@ -175,14 +171,26 @@ class WGANGP():
 
                     batches_done += self.config.n_critic
 
-            if epoch % self.config.log_k_epoch == 0:
-                save_image(fake_imgs.data[:25], f"wgangp/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)
+                # Collect kth epoch and final epoch images
+                if (epoch % self.config.log_k_epoch == 0) or (epoch == self.config.n_epochs - 1):
+                    self.real_imgs.append(real_imgs)
+                    self.fake_imgs.append(gen_imgs)
+            
+            # logging at kth and final epochs
+            if (epoch % self.config.log_k_epoch == 0) or (epoch == self.config.n_epochs - 1):
+                # Log loss state
                 self.g_losses.append(g_loss.item())
-                self.d_losses.append(d_loss.item())
+                self.d_losses.append(d_loss.item()) 
+                # Plot losses
+                plot_losses(f"{self.config.model}/{self.config.dataset}", self.g_losses, self.d_losses, self.config.model, self.config.log_k_epoch)
+                # Save samples
+                save_image(gen_imgs.data[:25], f"{self.config.model}/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)  
+                save_image(real_imgs.data[:25], f"{self.config.model}/{self.config.dataset}/%d_real.png" % epoch, nrow=5, normalize=True)
+                # Save 1k images for FID
+                fid_gen_imgs = torch.cat(self.fake_imgs, dim=0)[:1000]
+                fid_real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]     
+                save_fid_images(fid_gen_imgs, f"{self.config.model}/{self.config.dataset}/gen_imgs")
+                save_fid_images(fid_real_imgs, f"{self.config.model}/{self.config.dataset}/real_imgs")
                 
         t1 = time.time()
         print(f"Training time for WGANGP on {self.config.dataset} = {t1 - t0} sec")
-
-        # Cat and save first 1000 images
-        self.gen_imgs = torch.cat(self.gen_imgs, dim=0)[:1000]
-        self.real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]

@@ -20,7 +20,11 @@ def init_wts_normal(m):
         torch.nn.init.constant_(m.bias.data, 0.0)
 
 def plot_losses(save_pth, g_losses, d_losses, model, k):
-    epochs = range(1, k*len(g_losses) + 1, k)
+    if k == 1:
+        epochs = range(0, len(g_losses))
+    else:
+        epochs = range(0, k*len(g_losses) - 1, k)
+    plt.figure()
     plt.plot(epochs, g_losses, label='Generator')
     plt.plot(epochs, d_losses, label='Discriminator')
     plt.title(f'{model} Loss per Epoch')
@@ -53,7 +57,7 @@ def build_dataloader(dataset, img_size, batch_size):
     )
     return dataloader
 
-def save_images(image_array, output_dir):
+def save_fid_images(image_array, output_dir):
     for i, image in enumerate(image_array):
         img_path = os.path.join(output_dir, f'image_{i + 1}.png')
         save_image(image, img_path)

@@ -2,6 +2,7 @@ import numpy as np
 import time
 
 from torchvision.utils import save_image
+from utils import plot_losses, save_fid_images
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -77,16 +78,15 @@ class GAN():
         self.g_losses = []
         self.d_losses = []
 
-        # Save final image state
-        self.gen_imgs = []
-        self.real_imgs = []
-
     # ----------
     #  Training
     # ----------
     def train(self):
         t0 = time.time()
         for epoch in range(self.config.n_epochs):
+            # Log image state per log_k_epoch
+            self.fake_imgs = []
+            self.real_imgs = []
             for i, (imgs, _) in enumerate(self.dataloader):
 
                 # Adversarial ground truths
@@ -95,10 +95,6 @@ class GAN():
 
                 # Configure input
                 real_imgs = torch.tensor(imgs, device=self.device, dtype=torch.float32)
-
-                # Log final epoch of images
-                if epoch == self.config.n_epochs - 1:
-                    self.real_imgs.append(real_imgs)
 
                 # -----------------
                 #  Train Generator
@@ -111,10 +107,6 @@ class GAN():
                 
                 # Generate a batch of images
                 gen_imgs = self.generator(z)
-
-                # Log final epoch of images
-                if epoch == self.config.n_epochs - 1:
-                    self.gen_imgs.append(gen_imgs)
 
                 # Loss measures generator's ability to fool the discriminator
                 g_loss = self.loss(self.discriminator(gen_imgs), valid)
@@ -141,15 +133,27 @@ class GAN():
                 )
 
                 batches_done = epoch * len(self.dataloader) + i
+                
+                # Collect kth epoch and final epoch images
+                if (epoch % self.config.log_k_epoch == 0) or (epoch == self.config.n_epochs - 1):
+                    self.real_imgs.append(real_imgs)
+                    self.fake_imgs.append(gen_imgs)
             
-            if epoch % self.config.log_k_epoch == 0:
-                save_image(gen_imgs.data[:25], f"gan/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)   
+            # logging at kth and final epochs
+            if (epoch % self.config.log_k_epoch == 0) or (epoch == self.config.n_epochs - 1):
+                # Log loss state
                 self.g_losses.append(g_loss.item())
                 self.d_losses.append(d_loss.item()) 
+                # Plot losses
+                plot_losses(f"{self.config.model}/{self.config.dataset}", self.g_losses, self.d_losses, self.config.model, self.config.log_k_epoch)
+                # Save samples
+                save_image(gen_imgs.data[:25], f"{self.config.model}/{self.config.dataset}/%d.png" % epoch, nrow=5, normalize=True)  
+                save_image(real_imgs.data[:25], f"{self.config.model}/{self.config.dataset}/%d_real.png" % epoch, nrow=5, normalize=True)
+                # Save 1k images for FID
+                fid_gen_imgs = torch.cat(self.fake_imgs, dim=0)[:1000]
+                fid_real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]     
+                save_fid_images(fid_gen_imgs, f"{self.config.model}/{self.config.dataset}/gen_imgs")
+                save_fid_images(fid_real_imgs, f"{self.config.model}/{self.config.dataset}/real_imgs") 
                 
         t1 = time.time()
         print(f"Training time for GAN on {self.config.dataset} = {t1 - t0} sec")
-
-        # Cat and save first 1000 images
-        self.gen_imgs = torch.cat(self.gen_imgs, dim=0)[:1000]
-        self.real_imgs = torch.cat(self.real_imgs, dim=0)[:1000]
