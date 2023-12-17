@@ -34,7 +34,7 @@ def plot_losses(save_pth, g_losses, d_losses, model, k):
     plt.legend()
     plt.savefig(f'{save_pth}/losses.png')
 
-def build_dataloader(dataset, img_size, batch_size):
+def build_dataloader(dataset, img_size, channels, batch_size):
     os.makedirs(f"./data/{dataset}", exist_ok=True)
     if dataset == "mnist":
         ds = datasets.MNIST
@@ -49,7 +49,9 @@ def build_dataloader(dataset, img_size, batch_size):
             train=True,
             download=True,
             transform=transforms.Compose(
-                [transforms.Resize(img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+                [transforms.Resize(img_size), 
+                transforms.ToTensor(), 
+                transforms.Normalize([0.5]*channels, [0.5]*channels)]
             ),
         ),
         batch_size=batch_size,

@@ -48,7 +48,7 @@ def main():
     config.img_shape = (config.channels, config.img_size, config.img_size)
 
     # Construct dataloader
-    dataloader = build_dataloader(dataset, config.img_size, config.batch_size)
+    dataloader = build_dataloader(dataset, config.img_size, config.channels, config.batch_size)
 
     # Create fresh directory
     output_dir = f"{model}/{dataset}"
