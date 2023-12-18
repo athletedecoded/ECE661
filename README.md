@@ -1,4 +1,4 @@
-# Comparative Analysis of Generative Adversarial Network (GANs)
+# Comparative Analysis of Generative Adversarial Networks (GANs)
 
 **ECE661 Computer Engineering Machine Learning and Deep Neural Nets**
 
@@ -47,22 +47,24 @@ $ python3 run.py <MODEL> <DATASET> <DEVICE>
 
 **MNIST**
 
-| Model   | Num Epochs | Runtime     | FID    |
-|---------|------------|-------------|--------|
-| GAN     | 2000       |             |        |
-| WGAN    | 200        | 2293.0025   | 63.46  |
-| WGANGP  | 200        | 2661.8567   | 90.59  |
-| ACGAN*  | 200        | 6849.43     | 23.859 |
+|   Model   | Num Epochs |  Runtime   |   FID   |
+|:----------:|:----------:|:----------:|:-------:|
+|    GAN     |    500     |  6545.27   | 105.37  |
+|   WGAN     |    200     | 2293.0025  |  63.46  |
+|  WGANGP    |    200     | 2661.8567  |  90.59  |
+|   ACGAN*   |    200     |  7515.25   |  22.92  |
+
 
 <hr>
 
 **CIFAR**
 
-| Model   | Num Epochs | Runtime     | FID    |
-|---------|------------|-------------|--------|
-| GAN     |            |             |        |
-| WGAN    | 2000       | 21820.6069  | 156.54 |
-| WGANGP  |            |             |        |
-| ACGAN*  | 2000       |             |        |
+|   Model   | Num Epochs |   Runtime   |   FID   |
+|:----------:|:----------:|:-----------:|:-------:|
+|    GAN     |    500     | 5990.0176   | 176.14  |
+|   WGAN     |    200     |  2195.66    | 156.54  |
+|  WGANGP    |    200     |  2499.04    | 304.61  |
+|   ACGAN*   |    200     |  6036.49    | 133.45  |
+
 
 *ACGAN models were run on Nvidia T4 GPU. All other models were run on Nvidia A10G GPU.
